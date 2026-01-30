@@ -1,0 +1,184 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    background-color: #f5f7fb;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: #333;
+}
+
+/* Banner */
+.banner {
+    height: 200px;
+    background-image: url("images/banner.jpg");
+    /* ảnh núi – đền – hoa */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    display: flex;
+    align-items: center;
+    padding-left: 32px;
+}
+
+/* Chữ trên banner */
+.banner-text {
+    background: rgba(0, 0, 0, 0.35);
+    /* phủ mờ để chữ nổi */
+    padding: 12px 20px;
+    border-radius: 10px;
+    color: #fff;
+}
+
+.banner-text h1 {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.banner-text p {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+
+/* Layout */
+.container {
+    display: flex;
+    min-height: calc(100vh - 140px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.course-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #4f8cff;
+}
+
+/* Menu */
+.menu {
+    list-style: none;
+}
+
+.menu-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #f7d0be;
+}
+
+.menu-item.active {
+    background-color: #e6efff;
+    font-weight: 600;
+}
+
+/* Submenu */
+.submenu {
+    list-style: none;
+    margin-top: 6px;
+    margin-left: 10px;
+}
+
+.submenu-item {
+    padding: 8px 10px;
+    border-radius: 6px;
+    background-color: #f7f9ff;
+    margin-bottom: 6px;
+}
+
+/* Ẩn toàn bộ menu con */
+.submenu,
+.flyout-menu {
+    display: none;
+}
+
+/* Hover Từ vựng -> hiện Ngày */
+.menu-item.has-submenu:hover>.submenu {
+    display: block;
+}
+
+/* Ngày 1 là mốc để menu bay ra */
+.submenu-item.has-flyout {
+    position: relative;
+}
+
+/* Hover Ngày 1 -> hiện menu bay ngang */
+.submenu-item.has-flyout:hover>.flyout-menu {
+    display: block;
+}
+
+/* Flyout menu */
+.flyout-menu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    /* margin-left: 5px; */
+    background-color: #ffffff;
+    padding: 6px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    min-width: 200px;
+}
+
+/* Item trong flyout */
+.flyout-menu li {
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background 0.2s;
+    list-style: none;
+}
+
+.flyout-menu li:hover {
+    background-color: #f7d0be;
+}
+
+/* Hiệu ứng mượt */
+.submenu,
+.flyout-menu {
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 30px;
+}
+
+.content h2 {
+    margin-bottom: 10px;
+    color: #4f8cff;
+}
