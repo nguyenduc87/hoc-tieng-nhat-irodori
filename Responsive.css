@@ -1,0 +1,43 @@
+/* Mobile */
+@media (max-width: 768px) {
+    .banner {
+        height: 140px;
+        background-position: center top;
+        padding-left: 16px;
+    }
+}
+
+/* Responsive cho Layout (sidebar + content) */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        box-shadow: none;
+        padding: 12px;
+    }
+
+    .content {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .submenu,
+    .flyout-menu {
+        display: block;
+        position: static;
+        margin-left: 0;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .flyout-menu {
+        background-color: #f7f9ff;
+        border-radius: 8px;
+    }
+}
+
