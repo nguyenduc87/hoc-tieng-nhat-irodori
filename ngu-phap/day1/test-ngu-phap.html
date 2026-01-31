@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Thêm liên kết tới Google Fonts cho Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <title>Kiểm Tra Từ Vựng Tiếng Nhật</title>
+    <style>
+        /* Toàn bộ trang */
+        body {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Khung chứa bài quiz */
+        .quiz-container {
+            background-color: #222;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            text-align: center;
+        }
+
+        /* Đồng hồ đếm ngược */
+        .timer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #ff5722;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Tiêu đề bài quiz */
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        /* Phần câu hỏi */
+        .question {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #ffd700;
+        }
+
+        /* Các lựa chọn trả lời */
+        .choices {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .choices li {
+            background-color: #444;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .choices li:hover {
+            background-color: #555;
+        }
+
+        .choices li.correct {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .choices li.incorrect {
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            color: #fff;
+            background-color: #007bff;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            text-align: center;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            display: none;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .result h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .result p {
+            font-size: 18px;
+            margin: 5px 0;
+            color: #ddd;
+        }
+
+        .result p>span {
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+        .warning {
+            color: #f44336;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz-container">
+        <div class="timer" id="timer">07</div>
+        <h1>Kiểm Tra Từ Vựng Ngày 1</h1>
+        <div class="question">
+            <p id="question">Câu hỏi sẽ xuất hiện ở đây</p>
+        </div>
+        <ul class="choices" id="choices"></ul>
+        <div>
+            <button id="nextButton" class="btn" onclick="nextQuestion()" style="display:none;">Chuyển câu hỏi</button>
+            <button id="submitButton" class="btn" onclick="submitQuiz()" style="display:none;">Gửi</button>
+        </div>
+        <div id="feedback" style="display:none; color: #4caf50; font-size: 20px; margin-top: 10px;"></div>
+        <div id="explanation" style="display:none; color: #e4e0e0; font-size: 17px; margin-top: 10px;"></div>
+        <div id="warning" class="warning" style="display: none;">Vui lòng chọn một đáp án trước khi chuyển câu hỏi!
+        </div>
+
+        <div class="result" id="result">
+            <h2>Kết Quả Kiểm Tra</h2>
+            <p>Tổng số câu hỏi: <span id="totalQuestions"></span></p>
+            <p>Số câu đúng: <span id="correctAnswers"></span></p>
+            <p>Số câu sai: <span id="incorrectAnswers"></span></p>
+            <p>Số câu chưa chọn đáp án: <span id="unansweredQuestions"></span></p>
+            <button class="btn" onclick="restartQuiz()">Làm lại</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "_______。チャンです。よろしくお願いします。",
+                choices: ["しつれいします", "すみません", "おつかれさまです", "はじめまして"],
+                answer: "はじめまして",
+                kanji: "初めまして",
+                explanation: "「はじめまして」dùng khi lần đầu gặp và tự giới thiệu. (Dịch: Xin chào. Tôi là Trang/Chan. Rất mong được giúp đỡ.)",
+                userAnswer: null
+            },
+            {
+                question: "ベトナム＿＿きました。",
+                choices: ["まで", "から", "どこ", "ここ"],
+                answer: "から",
+                hiragana: "から",
+                explanation: "Chọn「から」vì có nghĩa là từ đâu đến. (VD: Tôi đến từ Viet Nam.)",
+                userAnswer: null
+            },
+            {
+                question: "ミラーさんはアメリカから_______。",
+                choices: ["います", "あります", "きました", "します"],
+                answer: "きました",
+                kanji: "来ました",
+                explanation: "「きました」dùng khi nói đã đến từ nơi khác. (Anh Miller đến từ Mỹ.)",
+                userAnswer: null
+            },
+            // 3️⃣ Nは？
+            {
+                question: "山田さんは会社員です。鈴木さん_______？",
+                choices: ["は", "も", "が", "を"],
+                answer: "は",
+                kanji: "は",
+                explanation: "「Nは？」dùng để hỏi tiếp về chủ đề khác. (Thế còn anh Suzuki?)",
+                userAnswer: null
+            },
+            {
+                question: "これはわたしのかばんです。あれ_______？",
+                choices: ["は", "が", "を", "に"],
+                answer: "は",
+                kanji: "は",
+                explanation: "Dùng 「は？」 để hỏi về đối tượng khác. (Còn cái kia thì sao?)",
+                userAnswer: null
+            },
+
+            // 4️⃣ Sか？
+            {
+                question: "あなたは学生です_______。",
+                choices: ["で", "に", "か", "も"],
+                answer: "か",
+                kanji: "か",
+                explanation: "「か」dùng để tạo câu hỏi. (Bạn là học sinh phải không?)",
+                userAnswer: null
+            },
+            {
+                question: "ここは日本語学校です_______。",
+                choices: ["か", "を", "に", "で"],
+                answer: "か",
+                kanji: "か",
+                explanation: "Câu nghi vấn dạng lịch sự. (Đây là trường tiếng Nhật phải không?)",
+                userAnswer: null
+            },
+
+            // 5️⃣ Nも
+            {
+                question: "わたしは学生です。田中さん_______学生です。",
+                choices: ["は", "が", "も", "を"],
+                answer: "も",
+                kanji: "も",
+                explanation: "「も」có nghĩa là cũng. (Anh Tanaka cũng là học sinh.)",
+                userAnswer: null
+            },
+            {
+                question: "これはわたしの本です。それ_______わたしの本です。",
+                choices: ["は", "が", "も", "に"],
+                answer: "も",
+                kanji: "も",
+                explanation: "Dùng khi hai đối tượng giống nhau. (Cái đó cũng là sách của tôi.)",
+                userAnswer: null
+            },
+
+            // 6️⃣ Nじゃないです
+            {
+                question: "わたしは先生_______。",
+                choices: ["です", "でした", "じゃないです", "も"],
+                answer: "じゃないです",
+                kanji: "じゃないです",
+                explanation: "「Nじゃないです」dùng để phủ định. (Tôi không phải là giáo viên.)",
+                userAnswer: null
+            },
+            {
+                question: "ここはびょういん_______。",
+                choices: ["です", "じゃないです", "でした", "か"],
+                answer: "じゃないです",
+                kanji: "じゃないです",
+                explanation: "Phủ định danh từ. (Đây không phải là bệnh viện.)",
+                userAnswer: null
+            },
+
+            // 7️⃣ N1とN2
+            {
+                question: "わたしは父_______母と住んでいます。",
+                choices: ["は", "も", "と", "が"],
+                answer: "と",
+                kanji: "と",
+                explanation: "「と」nối hai danh từ. (Tôi sống cùng bố và mẹ.)",
+                userAnswer: null
+            },
+            {
+                question: "かばんの中に本_______ノートがあります。",
+                choices: ["も", "は", "と", "に"],
+                answer: "と",
+                kanji: "と",
+                explanation: "Dùng để liệt kê. (Trong cặp có sách và vở.)",
+                userAnswer: null
+            },
+
+            // 8️⃣ 【ĐỊA ĐIỂM】に すんでいます
+            {
+                question: "わたしはハノイ_______すんでいます。",
+                choices: ["に", "で", "を", "から"],
+                answer: "に",
+                kanji: "に",
+                explanation: "「に すんでいます」dùng để nói nơi đang sống. (Tôi đang sống ở Hà Nội.)",
+                userAnswer: null
+            },
+            {
+                question: "田中さんはどこ_______すんでいますか。",
+                choices: ["に", "で", "を", "へ"],
+                answer: "に",
+                kanji: "に",
+                explanation: "Hỏi nơi sinh sống. (Anh Tanaka đang sống ở đâu?)",
+                userAnswer: null
+            },
+            {
+                question: "ミラーさんは東京に_______。",
+                choices: ["すみます", "すんでいます", "いきます", "きます"],
+                answer: "すんでいます",
+                kanji: "住んでいます",
+                explanation: "Dạng ～ています diễn tả trạng thái đang tiếp diễn. (Đang sống ở Tokyo.)",
+                userAnswer: null
+            },
+
+            // 9️⃣ N1 の N2
+            {
+                question: "これはわたし_______かばんです。",
+                choices: ["の", "は", "が", "を"],
+                answer: "の",
+                kanji: "の",
+                explanation: "「N1のN2」diễn tả sở hữu. (Đây là cặp của tôi.)",
+                userAnswer: null
+            },
+            {
+                question: "田中さん_______電話番号を知っていますか。",
+                choices: ["の", "は", "が", "を"],
+                answer: "の",
+                kanji: "の",
+                explanation: "「の」nối hai danh từ. (Bạn có biết số điện thoại của anh Tanaka không?)",
+                userAnswer: null
+            },
+            {
+                question: "これは日本_______車です。",
+                choices: ["の", "に", "で", "と"],
+                answer: "の",
+                kanji: "の",
+                explanation: "「N1のN2」chỉ nguồn gốc. (Đây là xe của Nhật.)",
+                userAnswer: null
+            },
+
+            // 🔟 N が すきです
+            {
+                question: "私は日本料理_______すきです。",
+                choices: ["が", "を", "に", "で"],
+                answer: "が",
+                kanji: "が",
+                explanation: "「Nがすきです」dùng để nói sở thích. (Tôi thích món Nhật.)",
+                userAnswer: null
+            },
+            {
+                question: "田中さんは何_______すきですか。",
+                choices: ["が", "を", "に", "で"],
+                answer: "が",
+                kanji: "が",
+                explanation: "Dùng 「何が」 để hỏi sở thích. (Anh Tanaka thích gì?)",
+                userAnswer: null
+            },
+            {
+                question: "どんな音楽_______すきですか。",
+                choices: ["が", "を", "に", "で"],
+                answer: "が",
+                kanji: "が",
+                explanation: "「どんなNがすきですか」hỏi loại nào. (Bạn thích loại nhạc nào?)",
+                userAnswer: null
+            },
+
+            // 1️⃣1️⃣ N に します
+            {
+                question: "コーヒー_______します。",
+                choices: ["に", "を", "で", "が"],
+                answer: "に",
+                kanji: "に",
+                explanation: "「Nにします」dùng khi chọn một thứ. (Tôi chọn cà phê.)",
+                userAnswer: null
+            },
+            {
+                question: "私はアイスクリーム_______します。",
+                choices: ["に", "を", "で", "が"],
+                answer: "に",
+                kanji: "に",
+                explanation: "Dùng khi quyết định lựa chọn. (Tôi chọn cái này.)",
+                userAnswer: null
+            },
+            {
+                question: "ランチはカレー_______します。",
+                choices: ["に", "を", "で", "が"],
+                answer: "に",
+                kanji: "に",
+                explanation: "Chọn món ăn. (Bữa trưa tôi chọn cà ri.)",
+                userAnswer: null
+            },
+
+            // 1️⃣2️⃣ N を（SỐ LƯỢNG）ください / おねがいします
+            {
+                question: "ビールを二本_______。",
+                choices: ["ください", "します", "あります", "です"],
+                answer: "ください",
+                kanji: "ください",
+                explanation: "「Nをください」dùng khi yêu cầu. (Làm ơn cho tôi 2 chai bia.)",
+                userAnswer: null
+            },
+            {
+                question: "コピーを三枚_______します。",
+                choices: ["おねがい", "ください", "に", "で"],
+                answer: "おねがい",
+                kanji: "お願いします",
+                explanation: "「Nをお願いします」dùng trong ngữ cảnh lịch sự. (Làm ơn cho tôi 3 bản copy.)",
+                userAnswer: null
+            },
+            {
+                question: "パンを一つ_______。",
+                choices: ["ください", "います", "です", "に"],
+                answer: "ください",
+                kanji: "ください",
+                explanation: "Cách nói đơn giản khi mua đồ. (Cho tôi 1 cái bánh.)",
+                userAnswer: null
+            },
+
+            // 1️⃣3️⃣ 【ĐỊA ĐIỂM】に N が（SỐ LƯỢNG）あります
+            {
+                question: "へやにつくえ_______あります。",
+                choices: ["が", "を", "に", "で"],
+                answer: "が",
+                kanji: "が",
+                explanation: "「Nがあります」dùng cho đồ vật tồn tại. (Trong phòng có bàn.)",
+                userAnswer: null
+            },
+            {
+                question: "かばんの中にえんぴつがにほん_______。",
+                choices: ["あります", "います", "します", "です"],
+                answer: "あります",
+                kanji: "あります",
+                explanation: "Diễn tả số lượng đồ vật. (Trong cặp có 2 cây bút chì.)",
+                userAnswer: null
+            },
+            {
+                question: "学校に学生がたくさん_______。",
+                choices: ["あります", "います", "です", "します"],
+                answer: "います",
+                kanji: "います",
+                explanation: "「います」dùng cho người. (Ở trường có nhiều học sinh.)",
+                userAnswer: null
+            },
+
+            // 1️⃣4️⃣ 【ĐỊA ĐIỂM】に NGƯỜI が（SỐ LƯỢNG）います
+            {
+                question: "きょうしつに学生_______います。",
+                choices: ["が", "を", "に", "で"],
+                answer: "が",
+                kanji: "が",
+                explanation: "「Nがいます」dùng cho người tồn tại. (Trong lớp có học sinh.)",
+                userAnswer: null
+            },
+            {
+                question: "公園に子どもが三人_______。",
+                choices: ["います", "あります", "します", "です"],
+                answer: "います",
+                kanji: "います",
+                explanation: "「います」dùng cho người. (Ở công viên có 3 đứa trẻ.)",
+                userAnswer: null
+            },
+            {
+                question: "会社に日本人_______いますか。",
+                choices: ["が", "を", "に", "で"],
+                answer: "が",
+                kanji: "が",
+                explanation: "Câu hỏi về sự tồn tại của người. (Trong công ty có người Nhật không?)",
+                userAnswer: null
+            },
+
+            // 1️⃣5️⃣ 【ĐỊA ĐIỂM】で NGƯỜI と Vます／ました
+            {
+                question: "わたしは友だち_______映画を見ました。",
+                choices: ["と", "で", "に", "を"],
+                answer: "と",
+                kanji: "と",
+                explanation: "「Nと」cùng với ai làm gì đó. (Tôi xem phim với bạn.)",
+                userAnswer: null
+            },
+            {
+                question: "家_______家族とごはんを食べます。",
+                choices: ["で", "に", "を", "と"],
+                answer: "で",
+                kanji: "で",
+                explanation: "「で」Nơi diễn ra hành động. (Tôi ăn cơm với gia đình ở nhà.)",
+                userAnswer: null
+            },
+            {
+                question: "会社でじょうし (Cấp trên)_______話しました。",
+                choices: ["と", "を", "に", "が"],
+                answer: "と",
+                kanji: "と",
+                explanation: "Dùng khi nói chuyện cùng ai đó. (Tôi đã nói chuyện với sếp ở công ty.)",
+                userAnswer: null
+            },
+
+            // 1️⃣6️⃣ 【THỜI GIAN】に／ごろ Vます
+            {
+                question: "朝、わたしは7時_______おきました。",
+                choices: ["に", "で", "を", "から"],
+                answer: "に",
+                kanji: "に",
+                explanation: "「時間 (じかん) に」chỉ thời điểm cụ thể. (Tôi dậy lúc 7 giờ.)",
+                userAnswer: null
+            },
+            {
+                question: "12時_______昼ごはんを食べます。",
+                choices: ["ごろ", "に", "で", "を"],
+                answer: "ごろ",
+                kanji: "ごろ",
+                explanation: "「ごろ」chỉ thời gian khoảng chừng. (Tôi ăn trưa khoảng 12 giờ.)",
+                userAnswer: null
+            },
+            {
+                question: "夜10時_______寝ます。",
+                choices: ["に", "ごろ", "で", "まで"],
+                answer: "に",
+                kanji: "に",
+                explanation: "Dùng 「に」 với thời điểm rõ ràng. 「ごろ」là khoảng chừng. (Tôi ngủ lúc 10 giờ tối.)",
+                userAnswer: null
+            },
+
+            // 1️⃣7️⃣ 【THỜI GIAN】から 【THỜI GIAN】まで
+            {
+                question: "わたしは9時_______5時まで働きます。",
+                choices: ["から", "に", "で", "まで"],
+                answer: "から",
+                kanji: "から",
+                explanation: "「から」chỉ thời điểm bắt đầu. (Tôi làm việc từ 9 giờ.)",
+                userAnswer: null
+            },
+            {
+                question: "月曜日から金曜日_______会社に行きます。",
+                choices: ["まで", "に", "で", "を"],
+                answer: "まで",
+                kanji: "まで",
+                explanation: "「まで」chỉ thời điểm kết thúc. (Tôi đi làm từ thứ hai đến thứ Sáu.)",
+                userAnswer: null
+            },
+            {
+                question: "授業（じゅぎょう - buổi học）は8時から10時_______です。",
+                choices: ["まで", "から", "に", "で"],
+                answer: "まで",
+                kanji: "まで",
+                explanation: "Mẫu 「から～まで」chỉ khoảng thời gian. (Lớp học từ 8 đến 10 giờ.)",
+                userAnswer: null
+            },
+            // 1️⃣8️⃣ 【NGÀY / GIỜ】が いいです
+            { question: "月曜日_______いいです。", choices: ["が", "に", "で", "を"], answer: "が", kanji: "が", explanation: "「Nがいいです」dùng để nói lựa chọn mong muốn. (Thứ Hai thì được.)", userAnswer: null },
+            { question: "3時_______いいですか。", choices: ["が", "に", "で", "を"], answer: "が", kanji: "が", explanation: "Hỏi thời gian phù hợp. (3 giờ có được không?)", userAnswer: null },
+            { question: "金曜日の午後_______いいです。", choices: ["が", "に", "で", "を"], answer: "が", kanji: "が", explanation: "Dùng khi chốt ngày giờ. (Chiều thứ Sáu thì ok.)", userAnswer: null },
+
+            // 1️⃣9️⃣ V（て）ください
+            { question: "ここに名前を書い_______ください。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "書いてください", explanation: "「Vてください」dùng để yêu cầu lịch sự. (Hãy viết tên vào đây.)", userAnswer: null },
+            { question: "ちょっと待っ_______ください。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "待ってください", explanation: "Cách nói nhờ ai đó làm việc gì. (Làm ơn đợi một chút.)", userAnswer: null },
+            { question: "ドアを閉め_______ください。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "閉めてください", explanation: "Yêu cầu hành động. (Làm ơn đóng cửa.)", userAnswer: null },
+
+            // 2️⃣0️⃣ V（て）くれる？／くれませんか？／くれない？
+            { question: "写真をとっ_______くれませんか。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "撮ってくれませんか", explanation: "Nhờ ai đó làm giúp, cách lịch sự. (Bạn chụp ảnh giúp tôi được không?)", userAnswer: null },
+            { question: "この荷物を持っ_______くれる？", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "持ってくれる", explanation: "Nhờ vả thân mật. (Cậu cầm giúp hành lý này nhé?)", userAnswer: null },
+            { question: "日本語を教え_______くれない？", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "教えてくれない", explanation: "Cách nhờ nhẹ nhàng. (Dạy mình tiếng Nhật được không?)", userAnswer: null },
+
+            // 2️⃣1️⃣ V（て）もいいですか？／V（て）もいいです
+            { question: "ここにすっ_______もいいですか。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "座ってもいいですか", explanation: "Xin phép làm gì đó. (Tôi ngồi ở đây được không?)", userAnswer: null },
+            { question: "写真を撮っ_______もいいですか。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "撮ってもいいですか", explanation: "Xin phép lịch sự. (Tôi chụp ảnh được không?)", userAnswer: null },
+            { question: "もう帰っ_______もいいです。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "帰ってもいいです", explanation: "Cho phép / đồng ý. (Về bây giờ cũng được.)", userAnswer: null },
+
+            /* 22️⃣ しゅみは～です／～ことです */
+            { question: "しゅみは音楽を聞く_______です。", choices: ["こと", "の", "もの", "ため"], answer: "こと", kanji: "こと", explanation: "Dùng 「Vる＋ことです」để nói sở thích.", userAnswer: null },
+            { question: "しゅみは読書（どくしょ）_______。", choices: ["です", "ます", "こと", "でした"], answer: "です", kanji: "です", explanation: "Mẫu 「Nです」trả lời về sở thích.", userAnswer: null },
+            { question: "あなたのしゅみは何_______。", choices: ["ですか", "です", "ますか", "でしたか"], answer: "ですか", kanji: "ですか", explanation: "Hỏi về sở thích.", userAnswer: null },
+
+            /* 23️⃣ あまり／ぜんぜん + phủ định */
+            { question: "この映画はあまりおもしろく_______。", choices: ["ないです", "あります", "です", "でした"], answer: "ないです", kanji: "ないです", explanation: "「あまり」dùng với phủ định.", userAnswer: null },
+            { question: "わたしはコーヒーをぜんぜん飲み_______。", choices: ["ません", "ます", "ました", "たいです"], answer: "ません", kanji: "ません", explanation: "「ぜんぜん」đi với phủ định.", userAnswer: null },
+            { question: "今日はぜんぜん寒く_______。", choices: ["ないです", "あります", "です", "でした"], answer: "ないです", kanji: "ないです", explanation: "Phủ định tính từ.", userAnswer: null },
+
+            /* 24️⃣ 【ĐỊA ĐIỂM】で【SỰ KIỆN】があります */
+            { question: "学校_______テストがあります。", choices: ["で", "に", "を", "へ"], answer: "で", kanji: "で", explanation: "「で」chỉ nơi diễn ra sự kiện.", userAnswer: null },
+            { question: "公園でイベント_______あります。", choices: ["が", "を", "に", "で"], answer: "が", kanji: "が", explanation: "Chủ ngữ của sự kiện.", userAnswer: null },
+            { question: "来週、会社で会議（かいぎ）_______あります。", choices: ["が", "を", "に", "へ"], answer: "が", kanji: "が", explanation: "Diễn tả sự kiện sẽ diễn ra.", userAnswer: null },
+
+            /* 25️⃣ PT giao thôngで／に／から */
+            { question: "バス_______会社へ行きます。", choices: ["で", "に", "から", "を"], answer: "で", kanji: "で", explanation: "「で」chỉ phương tiện giao thông.", userAnswer: null },
+            { question: "駅_______電車に乗ります。", choices: ["で", "に", "から", "を"], answer: "で", kanji: "で", explanation: "Nơi dùng phương tiện.", userAnswer: null },
+            { question: "タクシー_______帰ります。", choices: ["で", "に", "から", "を"], answer: "で", kanji: "で", explanation: "Đi/về bằng phương tiện.", userAnswer: null },
+
+            /* 26️⃣ 【ĐỊA ĐIỂM】へ／に Vます */
+            { question: "学校_______日本語を勉強しに行きます。", choices: ["へ", "で", "を", "から"], answer: "へ", kanji: "へ", explanation: "「へ」chỉ hướng đi.", userAnswer: null },
+            { question: "スーパー_______買い物に行きます。", choices: ["に", "で", "を", "へ"], answer: "に", kanji: "に", explanation: "「に」chỉ đích đến.", userAnswer: null },
+            { question: "図書館_______本を借りに行きます。", choices: ["へ", "で", "を", "から"], answer: "へ", kanji: "へ", explanation: "Đi đâu để làm gì.", userAnswer: null },
+
+            /* 27️⃣ Vませんか */
+            { question: "いっしょに昼ごはんを食べ_______か。", choices: ["ません", "ます", "たい", "ない"], answer: "ません", kanji: "ませんか", explanation: "Mẫu rủ rê lịch sự.", userAnswer: null },
+            { question: "土曜日に映画を見_______か。", choices: ["ません", "ます", "たい", "ない"], answer: "ません", kanji: "ませんか", explanation: "Rủ ai đó cùng làm.", userAnswer: null },
+            { question: "一緒に勉強し_______か。", choices: ["ません", "ます", "たい", "ない"], answer: "ません", kanji: "ませんか", explanation: "Cách rủ nhẹ nhàng.", userAnswer: null },
+
+            /* 28️⃣ Vましょう */
+            { question: "いっしょに帰り_______。", choices: ["ましょう", "ます", "たい", "ません"], answer: "ましょう", kanji: "ましょう", explanation: "Đề nghị cùng làm.", userAnswer: null },
+            { question: "ちょっと休み_______。", choices: ["ましょう", "ます", "たい", "ません"], answer: "ましょう", kanji: "ましょう", explanation: "Rủ làm chung.", userAnswer: null },
+            { question: "明日電話し_______。", choices: ["ましょう", "ます", "たい", "ません"], answer: "ましょう", kanji: "ましょう", explanation: "Cách nói chủ động.", userAnswer: null },
+
+            /* 29️⃣ このPTは【ĐỊA ĐIỂM】に行きますか */
+            { question: "このバスは駅_______行きますか。", choices: ["に", "へ", "で", "を"], answer: "に", kanji: "に", explanation: "Hỏi nơi đến.", userAnswer: null },
+            { question: "この電車は空港_______行きますか。", choices: ["に", "で", "から", "を"], answer: "に", kanji: "に", explanation: "Hỏi điểm đến phương tiện.", userAnswer: null },
+            { question: "この地下鉄はどこ_______行きますか。", choices: ["に", "へ", "で", "を"], answer: "に", kanji: "に", explanation: "Hỏi điểm đến.", userAnswer: null },
+
+            /* 30️⃣ 乗ります／降ります */
+            { question: "駅で電車に_______。", choices: ["乗ります", "降ります", "行きます", "来ます"], answer: "乗ります", kanji: "乗ります", explanation: "Lên phương tiện.", userAnswer: null },
+            { question: "次の駅で電車を_______。", choices: ["降ります", "乗ります", "行きます", "来ます"], answer: "降ります", kanji: "降ります", explanation: "Xuống phương tiện.", userAnswer: null },
+            { question: "ここでバスを_______。", choices: ["降ります", "乗ります", "行きます", "来ます"], answer: "降ります", kanji: "降ります", explanation: "Xuống tại địa điểm.", userAnswer: null },
+
+            /* 31️⃣ から～まで どのくらい */
+            { question: "家から会社までどのくらい_______か。", choices: ["かかります", "あります", "します", "です"], answer: "かかります", kanji: "かかります", explanation: "Hỏi thời gian/mất bao lâu.", userAnswer: null },
+            { question: "駅から学校まで30分_______。", choices: ["かかります", "あります", "します", "です"], answer: "かかります", kanji: "かかります", explanation: "Trả lời thời gian.", userAnswer: null },
+            { question: "ここから空港（くうこう）までどのくらい_______か。", choices: ["かかります", "あります", "します", "です"], answer: "かかります", kanji: "かかります", explanation: "Mẫu cố định.", userAnswer: null },
+
+            /* 32️⃣ AはNですね／AはNですね */
+            { question: "今日はあつい_______。", choices: ["ですね", "ですか", "ですよ", "でした"], answer: "ですね", kanji: "ですね", explanation: "Đồng tình, xác nhận.", userAnswer: null },
+            { question: "この店は静か_______。", choices: ["ですね", "ですか", "ですよ", "でした"], answer: "ですね", kanji: "ですね", explanation: "Đồng cảm với người nghe.", userAnswer: null },
+            { question: "日本語はむずかしい_______。", choices: ["ですね", "ですか", "ですよ", "でした"], answer: "ですね", kanji: "ですね", explanation: "Nói cảm nhận chung.", userAnswer: null },
+
+            /* 33️⃣ Nがほしいです */
+            { question: "新しいパソコン_______ほしいです。", choices: ["が", "を", "に", "で"], answer: "が", kanji: "が", explanation: "「Nがほしいです」muốn có N.", userAnswer: null },
+            { question: "今、時間_______ほしいです。", choices: ["が", "を", "に", "で"], answer: "が", kanji: "が", explanation: "Muốn có thứ gì đó.", userAnswer: null },
+            { question: "プレゼント_______ほしいですか。", choices: ["が", "を", "に", "で"], answer: "が", kanji: "が", explanation: "Hỏi mong muốn.", userAnswer: null },
+
+            /* 34️⃣ 【SỐ LƯỢNG】ずつ */
+            { question: "一人一つ_______取ってください。", choices: ["ずつ", "だけ", "ほど", "ごろ"], answer: "ずつ", kanji: "ずつ", explanation: "Chia đều số lượng.", userAnswer: null },
+            { question: "りんごを二個_______食べます。", choices: ["ずつ", "だけ", "ほど", "ごろ"], answer: "ずつ", kanji: "ずつ", explanation: "Mỗi người/mỗi lần.", userAnswer: null },
+            { question: "学生は三人_______来ました。", choices: ["ずつ", "だけ", "ほど", "ごろ"], answer: "ずつ", kanji: "ずつ", explanation: "Phân phối số lượng.", userAnswer: null },
+
+            /* 35️⃣ Vます＋たいです */
+            { question: "日本へ行き_______です。", choices: ["たい", "ます", "ない", "ました"], answer: "たい", kanji: "たいです", explanation: "Diễn tả mong muốn làm gì.", userAnswer: null },
+            { question: "何を食べ_______ですか。", choices: ["たい", "ます", "ない", "ました"], answer: "たい", kanji: "たいです", explanation: "Hỏi mong muốn.", userAnswer: null },
+            { question: "映画を見_______です。", choices: ["たい", "ます", "ない", "ました"], answer: "たい", kanji: "たいです", explanation: "Muốn làm hành động.", userAnswer: null },
+
+            /* 36️⃣ Vて1、Vて2 */
+            { question: "朝ごはんを食べ_______学校へ行きます。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "て", explanation: "Nối hai hành động.", userAnswer: null },
+            { question: "家に帰っ_______、シャワーを浴びます。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "て", explanation: "Hành động liên tiếp.", userAnswer: null },
+            { question: "音楽を聞い_______勉強します。", choices: ["て", "で", "た", "ないで"], answer: "て", kanji: "て", explanation: "Thứ tự hành động.", userAnswer: null },
+
+            /* 37️⃣ Vế 1。 それから、Vế 2。 */
+            { question: "朝ごはんを食べました。_______、学校へ行きました。", choices: ["それから", "それに", "でも", "だから"], answer: "それから", kanji: "それから", explanation: "「それから」dùng để nối hành động theo thứ tự thời gian.", userAnswer: null },
+            { question: "シャワーを浴びました。_______、会社へ行きます。", choices: ["それから", "それに", "でも", "しかし"], answer: "それから", kanji: "それから", explanation: "Diễn tả hành động tiếp theo.", userAnswer: null },
+            { question: "宿題をしました。_______、テレビを見ました。", choices: ["それから", "それに", "でも", "から"], answer: "それから", kanji: "それから", explanation: "Làm việc A xong rồi làm tiếp B.", userAnswer: null },
+
+            /* 38️⃣ Vế 1。 それに、Vế 2。 */
+            { question: "このレストランは安いです。_______、おいしいです。", choices: ["それに", "それから", "でも", "から"], answer: "それに", kanji: "それに", explanation: "「それに」dùng để thêm thông tin cùng chiều.", userAnswer: null },
+            { question: "彼は日本語が上手です。_______、英語も話せます。", choices: ["それに", "それから", "でも", "しかし"], answer: "それに", kanji: "それに", explanation: "Bổ sung ý tích cực.", userAnswer: null },
+            { question: "この仕事は簡単です。_______、時間も短いです。", choices: ["それに", "それから", "でも", "だから"], answer: "それに", kanji: "それに", explanation: "Nối thêm ưu điểm.", userAnswer: null },
+
+            /* 39️⃣ Vế 1。 でも、Vế 2。 */
+            { question: "今日は日曜日です。_______、会社へ行きます。", choices: ["でも", "それから", "それに", "から"], answer: "でも", kanji: "でも", explanation: "「でも」dùng để diễn tả ý trái ngược.", userAnswer: null },
+            { question: "この店は高いです。_______、人が多いです。", choices: ["でも", "それから", "それに", "だから"], answer: "でも", kanji: "でも", explanation: "Nối hai ý đối lập.", userAnswer: null },
+            { question: "雨が降っています。_______、出かけます。", choices: ["でも", "それから", "それに", "ので"], answer: "でも", kanji: "でも", explanation: "Kết quả không như mong đợi.", userAnswer: null }
+        ];
+
+
+        // Hàm xáo trộn mảng theo thuật toán Fisher-Yates
+        function shuffleQuestions(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Gọi hàm này trước khi hiển thị câu hỏi
+        shuffleQuestions(questions);
+
+
+        let currentQuestion = 0;
+        let timer;
+        let timeRemaining = 7;
+        const feedback = document.getElementById("feedback");
+        const explanation = document.getElementById("explanation");
+        const warning = document.getElementById("warning");
+
+        function loadQuestion() {
+            document.querySelector(".quiz-container").style.opacity = 0;
+            feedback.style.display = "none";
+            explanation.style.display = "none";
+            setTimeout(() => {
+                const question = questions[currentQuestion];
+                document.getElementById("question").textContent = question.question;
+                const choicesList = document.getElementById("choices");
+                choicesList.innerHTML = '';
+
+                // Tạo bản sao của mảng đáp án rồi xáo trộn
+                let shuffledChoices = [...question.choices];
+                shuffleQuestions(shuffledChoices);
+
+                shuffledChoices.forEach(choice => {
+                    const li = document.createElement("li");
+                    li.textContent = choice;
+                    li.onclick = () => checkAnswer(choice, li);
+                    choicesList.appendChild(li);
+                });
+
+                timeRemaining = 30;
+                document.getElementById("timer").textContent = timeRemaining;
+                startTimer();
+
+                document.getElementById("nextButton").style.display = "none";
+                document.getElementById("submitButton").style.display = "none";
+                warning.style.display = "none";
+
+                document.querySelector(".quiz-container").style.opacity = 1;
+            }, 300);
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeRemaining--;
+                document.getElementById("timer").textContent = timeRemaining;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timer);
+                    document.getElementById("nextButton").style.display = "none";
+                    setTimeout(() => nextQuestion(), 1000);
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selected, liElement) {
+            const question = questions[currentQuestion];
+            const choices = document.querySelectorAll(".choices li");
+
+            question.userAnswer = selected;
+            choices.forEach(choice => {
+                if (choice.textContent === question.answer) {
+                    choice.classList.add("correct");
+                } else if (choice.textContent === selected) {
+                    choice.classList.add("incorrect");
+                }
+            });
+
+            choices.forEach(choice => {
+                choice.onclick = null;
+            });
+
+            clearInterval(timer);
+
+            feedback.style.display = "block";
+            feedback.innerHTML = `Phiên âm Hiragana: ${question.kanji}`;
+            explanation.style.display = "block";
+            explanation.innerHTML = `Giải thích: ${question.explanation}`;
+            warning.style.display = "none";
+
+            document.getElementById("nextButton").style.display = "inline-block";
+
+            if (currentQuestion === questions.length - 1) {
+                document.getElementById("nextButton").style.display = "none";
+                document.getElementById("submitButton").style.display = "inline-block";
+            }
+        }
+
+        function nextQuestion() {
+            if (questions[currentQuestion].userAnswer === null) {
+                warning.style.display = "block";
+                return;
+            }
+
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                document.getElementById("quizContainer").style.display = "none";
+                document.getElementById("submitButton").style.display = "inline-block";
+            }
+        }
+
+        function submitQuiz() {
+            let correctAnswers = 0;
+            let incorrectAnswers = 0;
+            let unansweredQuestions = 0;
+
+            questions.forEach(question => {
+                if (question.userAnswer === question.answer) {
+                    correctAnswers++;
+                } else if (question.userAnswer !== null) {
+                    incorrectAnswers++;
+                } else {
+                    unansweredQuestions++;
+                }
+            });
+
+            document.getElementById("totalQuestions").textContent = questions.length;
+            document.getElementById("correctAnswers").textContent = correctAnswers;
+            document.getElementById("incorrectAnswers").textContent = incorrectAnswers;
+            document.getElementById("unansweredQuestions").textContent = unansweredQuestions;
+
+            document.getElementById("nextButton").style.display = "none";
+            document.getElementById("submitButton").style.display = "none";
+
+            feedback.style.display = "none";
+            document.getElementById("result").style.display = "block";
+            document.getElementById("result").style.opacity = 1;
+        }
+
+        function restartQuiz() {
+            questions.forEach(question => question.userAnswer = null);
+            currentQuestion = 0;
+            loadQuestion();
+            document.getElementById("result").style.display = "none";
+        }
+
+        loadQuestion();
+    </script>
+
+</body>
+
+</html>

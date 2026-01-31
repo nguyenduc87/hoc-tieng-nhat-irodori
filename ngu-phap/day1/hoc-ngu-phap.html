@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Từ Vựng Ngày 1 </title>
+    <!-- Thêm liên kết tới Google Fonts cho Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+    <style>
+        /* Toàn bộ trang */
+        body {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Khung chứa bài quiz */
+        .quiz-container {
+            background-color: #222;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            text-align: center;
+        }
+
+        /* Đồng hồ đếm ngược */
+        .timer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #ff5722;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Tiêu đề bài quiz */
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        /* Phần câu hỏi */
+        .question {
+            margin-bottom: 20px;
+            font-size: 25px;
+            color: #ffd700;
+        }
+
+        /* Các lựa chọn trả lời */
+        .choices {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .choices li {
+            background-color: #444;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .choices li:hover {
+            background-color: #555;
+        }
+
+        .choices li.correct {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .choices li.incorrect {
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            color: #fff;
+            background-color: #007bff;
+            transition: background-color 0.3s ease;
+        }
+
+        #submitButton {
+            background-color: #99670b;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            text-align: center;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            display: none;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .result h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .result p {
+            font-size: 18px;
+            margin: 5px 0;
+            color: #ddd;
+        }
+
+        .result p>span {
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+        .warning {
+            color: #f44336;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz-container">
+        <div class="timer" id="timer">07</div>
+        <h1>Học 20 Từ Vựng Mỗi Ngày</h1>
+        <div class="question">
+            <p id="question">Câu hỏi sẽ xuất hiện ở đây</p>
+        </div>
+        <ul class="choices" id="choices"></ul>
+        <div>
+            <button id="nextButton" class="btn" onclick="nextQuestion()" style="display:none;">Tiếp tục</button>
+            <button id="submitButton" class="btn" onclick="submitQuiz()" style="display:none;">Xem kết quả thôi</button>
+        </div>
+        <div id="feedback" style="display:none; color: #4caf50; font-size: 20px; margin-top: 10px;"></div>
+        <div id="warning" class="warning" style="display: none;">Hết giờ ! Ấn "Tiếp tục" để làm tiếp!
+        </div>
+
+        <div class="result" id="result">
+            <h2>Kết Quả Kiểm Tra</h2>
+            <p>Tổng số câu hỏi: <span id="totalQuestions"></span></p>
+            <p>Số câu đúng: <span id="correctAnswers"></span></p>
+            <p>Số câu sai: <span id="incorrectAnswers"></span></p>
+            <p>Số câu chưa chọn đáp án: <span id="unansweredQuestions"></span></p>
+            <button class="btn" onclick="restartQuiz()">Làm lại</button>
+        </div>
+    </div>
+
+    <script>
+
+        const questions = [
+            {
+                question: "なきます",
+                choices: ["Khóc", "Cười", "Giận dữ", "Ngủ"],
+                answer: "Khóc",
+                kanji: "泣きます",
+                exampleJP: "子どもが大きな声で泣きます。",
+                exampleVI: "Đứa trẻ khóc to.",
+                userAnswer: null
+            },
+            {
+                question: "わらいます",
+                choices: ["Cười", "Khóc", "Ngạc nhiên", "Lo lắng"],
+                answer: "Cười",
+                kanji: "笑います",
+                exampleJP: "彼はいつも笑っています。",
+                exampleVI: "Anh ấy lúc nào cũng cười.",
+                userAnswer: null
+            },
+            {
+                question: "そうじします",
+                choices: ["Dọn dẹp", "Giặt đồ", "Nấu ăn", "Mua sắm"],
+                answer: "Dọn dẹp",
+                kanji: "掃除します",
+                exampleJP: "毎朝、部屋を掃除します。",
+                exampleVI: "Mỗi sáng tôi dọn dẹp phòng.",
+                userAnswer: null
+            },
+            {
+                question: "せんたくします",
+                choices: ["Giặt đồ", "Dọn dẹp", "Rửa bát", "Nấu ăn"],
+                answer: "Giặt đồ",
+                kanji: "洗濯します",
+                exampleJP: "日曜日に洗濯します。",
+                exampleVI: "Chủ nhật tôi giặt đồ.",
+                userAnswer: null
+            },
+            {
+                question: "おこります",
+                choices: ["Giận dữ", "Vui vẻ", "Buồn bã", "Ngạc nhiên"],
+                answer: "Giận dữ",
+                kanji: "怒ります",
+                exampleJP: "先生は学生に怒りました。",
+                exampleVI: "Giáo viên đã nổi giận với học sinh.",
+                userAnswer: null
+            },
+            {
+                question: "かたづけます",
+                choices: ["Dọn dẹp, sắp xếp", "Giặt đồ", "Vứt bỏ", "Trang trí"],
+                answer: "Dọn dẹp, sắp xếp",
+                kanji: "片づけます",
+                exampleJP: "机の上を片づけます。",
+                exampleVI: "Tôi dọn dẹp trên bàn.",
+                userAnswer: null
+            },
+            {
+                question: "はらいます",
+                choices: ["Thanh toán", "Nhận tiền", "Tiết kiệm", "Vay mượn"],
+                answer: "Thanh toán",
+                kanji: "払います",
+                exampleJP: "レストランでお金を払います。",
+                exampleVI: "Tôi thanh toán tiền ở nhà hàng.",
+                userAnswer: null
+            },
+            {
+                question: "きんちょうします",
+                choices: ["Căng thẳng, hồi hộp", "Thoải mái", "Vui vẻ", "Buồn ngủ"],
+                answer: "Căng thẳng, hồi hộp",
+                kanji: "緊張します",
+                exampleJP: "試験の前に緊張します。",
+                exampleVI: "Trước kỳ thi tôi rất căng thẳng.",
+                userAnswer: null
+            },
+            {
+                question: "でかけます",
+                choices: ["Ra ngoài", "Về nhà", "Ở lại", "Ngủ"],
+                answer: "Ra ngoài",
+                kanji: "出かけます",
+                exampleJP: "友だちと買い物に出かけます。",
+                exampleVI: "Tôi ra ngoài mua sắm với bạn.",
+                userAnswer: null
+            },
+            {
+                question: "はたらきます",
+                choices: ["Làm việc", "Nghỉ ngơi", "Học tập", "Đi chơi"],
+                answer: "Làm việc",
+                kanji: "働きます",
+                exampleJP: "日本の会社で働いています。",
+                exampleVI: "Tôi đang làm việc tại công ty Nhật.",
+                userAnswer: null
+            },
+
+            // 👉 các từ còn lại bạn giữ đúng format này là xong
+        ];
+
+        // Hàm xáo trộn mảng theo thuật toán Fisher-Yates
+        function shuffleQuestions(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Gọi hàm này trước khi hiển thị câu hỏi
+        shuffleQuestions(questions);
+
+        let currentQuestion = 0;
+        let timer;
+        let timeRemaining = 7;
+        const feedback = document.getElementById("feedback");
+        const warning = document.getElementById("warning");
+
+        function loadQuestion() {
+            document.querySelector(".quiz-container").style.opacity = 0;
+            feedback.style.display = "none";
+            setTimeout(() => {
+                const question = questions[currentQuestion];
+                document.getElementById("question").textContent = question.question;
+                const choicesList = document.getElementById("choices");
+                choicesList.innerHTML = '';
+
+                // Tạo bản sao của mảng đáp án rồi xáo trộn
+                let shuffledChoices = [...question.choices];
+                shuffleQuestions(shuffledChoices);
+
+                shuffledChoices.forEach(choice => {
+                    const li = document.createElement("li");
+                    li.textContent = choice;
+                    li.onclick = () => checkAnswer(choice, li);
+                    choicesList.appendChild(li);
+                });
+
+                timeRemaining = 5;
+                document.getElementById("timer").textContent = timeRemaining;
+                startTimer();
+
+                document.getElementById("nextButton").style.display = "none";
+                document.getElementById("submitButton").style.display = "none";
+                warning.style.display = "none";
+
+                document.querySelector(".quiz-container").style.opacity = 1;
+            }, 300);
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeRemaining--;
+                document.getElementById("timer").textContent = timeRemaining;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timer);
+                    // Vô hiệu hóa tất cả các đáp án
+                    const choices = document.querySelectorAll("#choices li");
+                    choices.forEach(choice => {
+                        choice.onclick = null;
+                    });
+                    document.getElementById("nextButton").style.display = "inline-block";
+                    if (questions[currentQuestion].userAnswer === null) {
+                        warning.style.display = "block";
+                        return;
+                    }
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selected, liElement) {
+            const question = questions[currentQuestion];
+            const choices = document.querySelectorAll(".choices li");
+
+            question.userAnswer = selected;
+            choices.forEach(choice => {
+                if (choice.textContent === question.answer) {
+                    choice.classList.add("correct");
+                } else if (choice.textContent === selected) {
+                    choice.classList.add("incorrect");
+                }
+            });
+
+            choices.forEach(choice => {
+                choice.onclick = null;
+            });
+
+            clearInterval(timer);
+
+            feedback.style.display = "block";
+            feedback.innerHTML = `Kanji  : ${question.kanji}`;
+            warning.style.display = "none";
+
+            document.getElementById("nextButton").style.display = "inline-block";
+
+            if (currentQuestion === questions.length - 1) {
+                document.getElementById("nextButton").style.display = "none";
+                document.getElementById("submitButton").style.display = "inline-block";
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                document.querySelector(".quiz-container").style.display = "none";
+                document.getElementById("submitButton").style.display = "inline-block";
+            }
+        }
+
+        function submitQuiz() {
+            let correctAnswers = 0;
+            let incorrectAnswers = 0;
+            let unansweredQuestions = 0;
+
+            questions.forEach(question => {
+                if (question.userAnswer === question.answer) {
+                    correctAnswers++;
+                } else if (question.userAnswer !== null) {
+                    incorrectAnswers++;
+                } else {
+                    unansweredQuestions++;
+                }
+            });
+
+            document.getElementById("totalQuestions").textContent = questions.length;
+            document.getElementById("correctAnswers").textContent = correctAnswers;
+            document.getElementById("incorrectAnswers").textContent = incorrectAnswers;
+            document.getElementById("unansweredQuestions").textContent = unansweredQuestions;
+
+            document.getElementById("nextButton").style.display = "none";
+            document.getElementById("submitButton").style.display = "none";
+
+            feedback.style.display = "none";
+            document.getElementById("result").style.display = "block";
+            document.getElementById("result").style.opacity = 1;
+        }
+
+        function restartQuiz() {
+            questions.forEach(question => question.userAnswer = null);
+            currentQuestion = 0;
+            loadQuestion();
+            document.getElementById("result").style.display = "none";
+        }
+
+        loadQuestion();
+    </script>
+</body>
+
+</html>
