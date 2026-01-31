@@ -101,7 +101,7 @@ a {
 .submenu-item {
     padding: 8px 10px;
     border-radius: 6px;
-    background-color: #f7f9ff;
+    background-color: #ffffff;
     margin-bottom: 6px;
 }
 
@@ -151,6 +151,11 @@ a {
 
 .flyout-menu li:hover {
     background-color: #f7d0be;
+}
+
+.submenu li a:hover,
+.submenu .submenu-item:hover {
+    color: #4f8cff;
 }
 
 /* Hiệu ứng mượt */
