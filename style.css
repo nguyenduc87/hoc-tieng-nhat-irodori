@@ -153,7 +153,7 @@ a {
     background-color: #f7d0be;
 }
 
-.submenu li a:hover,
+.submenu li:hover,
 .submenu .submenu-item:hover {
     color: #4f8cff;
 }
